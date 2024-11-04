@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Audio Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 50px;
+        }
+        .container {
+            width: 300px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        button {
+            cursor: pointer;
+        }
+        .radio-group {
+            margin-bottom: 15px;
+        }
+        #downloadLink {
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Radio buttons -->
+    <div class="radio-group">
+        <label for="gender">Select Gender:</label>
+        <input type="radio" id="male" name="gender" value="Male" checked> Male
+        <input type="radio" id="female" name="gender" value="Female"> Female
+    </div>
+
+    <!-- Textbox -->
+    <label for="textbox">Enter Text:</label>
+    <input type="text" id="textbox" name="textbox">
+
+    <!-- Dropdown -->
+    <label for="dropdown">Choose an option:</label>
+    <select id="dropdown" name="dropdown">
+        <!-- Initially load Male options -->
+        <option value="Antonio">Antonio</option>
+        <option value="Donato">Donato</option>
+        <option value="Fabio">Fabio</option>
+        <option value="Humberto">Humberto</option>
+        <option value="Julio">Julio</option>
+        <option value="Macerio">Macerio</option>
+        <option value="Nicolau">Nicolau</option>
+        <option value="Valerio">Valerio</option>
+    </select>
+
+    <!-- Button to Generate -->
+    <button id="generateButton">GENERATE</button>
+
+    <!-- Play button -->
+    <button id="playButton">Play</button>
+
+    <!-- Download Link -->
+    <a id="downloadLink" href="#" download>Download Generated Audio</a>
+
+    <!-- Audio element -->
+    <audio id="audioPlayer" controls style="display:none;"></audio>
+</div>
+
+<script>
+    const maleOptions = ["Antonio", "Donato", "Fabio", "Humberto", "Julio", "Macerio", "Nicolau", "Valerio"];
+    const femaleOptions = ["Brenda", "Elza", "Francisca", "Giovanna", "Leila", "Leticia", "Manuela", "Thalita", "ThalitaMultilingual", "Yara"];
+
+    // Function to update dropdown based on gender selected
+    function updateDropdown() {
+        const dropdown = document.getElementById("dropdown");
+        const selectedGender = document.querySelector('input[name="gender"]:checked').value;
+        let options = [];
+
+        if (selectedGender === "Male") {
+            options = maleOptions;
+        } else if (selectedGender === "Female") {
+            options = femaleOptions;
+        }
+
+        // Clear existing options
+        dropdown.innerHTML = "";
+
+        // Add new options
+        options.forEach(function(option) {
+            const newOption = document.createElement("option");
+            newOption.value = option;
+            newOption.text = option;
+            dropdown.appendChild(newOption);
+        });
+    }
+
+    // Event listeners for radio buttons to update the dropdown
+    document.getElementById("male").addEventListener("change", updateDropdown);
+    document.getElementById("female").addEventListener("change", updateDropdown);
+
+    // Button click event for "GENERATE"
+    document.getElementById('generateButton').addEventListener('click', function() {
+        const selectedVoice = document.getElementById("dropdown").value;
+        const enteredText = document.getElementById("textbox").value;
+        const selectedGender = document.querySelector('input[name="gender"]:checked').value.toLowerCase();
+
+        // Make AJAX request to generate audio
+        fetch('/generate-audio', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                voice: selectedVoice,
+                text: enteredText,
+                gender: selectedGender
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                alert(data.message);
+                // Show the download link
+                const downloadLink = document.getElementById("downloadLink");
+                downloadLink.href = data.download_link;
+                downloadLink.style.display = "block";
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    });
+
+    // Play button functionality
+    document.getElementById('playButton').addEventListener('click', function() {
+        const selectedOption = document.getElementById("dropdown").value;
+        const selectedGender = document.querySelector('input[name="gender"]:checked').value;
+
+        let audioUrl = "";
+        if (selectedGender === "Male") {
+            audioUrl = `/audio/male/${selectedOption}.wav`;
+        } else if (selectedGender === "Female") {
+            audioUrl = `/audio/female/${selectedOption}.wav`;
+        }
+
+        const audioPlayer = document.getElementById("audioPlayer");
+        audioPlayer.src = audioUrl;
+        audioPlayer.style.display = "block";  // Make the audio player visible
+        audioPlayer.play();
+    });
+</script>
+
+</body>
+</html>
