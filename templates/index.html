@@ -4,115 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Audio Generator</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 50px;
-        }
-        .container {
-            width: 300px;
-            margin: 0 auto;
-        }
-        label {
-            display: block;
-            margin-bottom: 10px;
-        }
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-        button {
-            cursor: pointer;
-        }
-        .radio-group {
-            margin-bottom: 15px;
-        }
-        #downloadLink {
-            display: none;
-            margin-top: 10px;
-        }
-    </style>
+        <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+          integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
 <body>
 
 <div class="container">
-    <!-- Radio buttons -->
-    <div class="radio-group">
-        <label for="gender">Select Gender:</label>
-        <input type="radio" id="male" name="gender" value="Male" checked> Male
-        <input type="radio" id="female" name="gender" value="Female"> Female
+    <div class="form-group">
+        <label>Selecione o gênero:
+          <select name="gender" class="form-control" required>
+                <option value=1>Masculino</option>
+                <option value=0>Feminino</option>
+          </select></label>
     </div>
 
-    <!-- Textbox -->
-    <label for="textbox">Enter Text:</label>
-    <input type="text" id="textbox" name="textbox">
 
-    <!-- Dropdown -->
-    <label for="dropdown">Choose an option:</label>
-    <select id="dropdown" name="dropdown">
-        <!-- Initially load Male options -->
-        <option value="Antonio">Antonio</option>
-        <option value="Donato">Donato</option>
-        <option value="Fabio">Fabio</option>
-        <option value="Humberto">Humberto</option>
-        <option value="Julio">Julio</option>
-        <option value="Macerio">Macerio</option>
-        <option value="Nicolau">Nicolau</option>
-        <option value="Valerio">Valerio</option>
-    </select>
+    <!-- Textbox -->
+    <div class="form-group">
+        <label for="textbox">Texto para voz</label>
+        <textarea class="form-control" id="textbox" rows="3"></textarea>
+    </div>
+
+
+    <div id="dropdown" class="form-group">
+        <label>Selecione uma voz:
+          <select name="dropdown" class="form-control">
+            <option value="Antonio">Antonio</option>
+            <option value="Donato">Donato</option>
+            <option value="Fabio">Fabio</option>
+            <option value="Humberto">Humberto</option>
+            <option value="Julio">Julio</option>
+            <option value="Macerio">Macerio</option>
+            <option value="Nicolau">Nicolau</option>
+            <option value="Valerio">Valerio</option>
+          </select></label>
+    </div>
 
     <!-- Button to Generate -->
-    <button id="generateButton">Gerar Áudio</button>
+    <input type="submit" name="generateAudio" class="btn btn-lg btn-secondary submit" value="Gerar Áudio">
 
     <!-- Play button -->
-    <button id="playButton">Tocar amostra</button>
+    <input type="submit" name="playSample" class="btn btn-lg btn-secondary submit" value="Tocar amostra">
 
     <!-- Download Link -->
-    <a id="downloadLink" href="#" download>Download Generated Audio</a>
-
+    <div class="form-group">
+        <a id="downloadLink" href="#" class="btn btn-lg btn-primary hidden" download>Baixar Áudio</a>
+    </div>
     <!-- Audio element -->
-    <audio id="audioPlayer" controls style="display:none;"></audio>
+    <div class="form-group">
+        <audio id="audioPlayer" controls style="display:none;"></audio>
+    </div>
 </div>
 
 <script>
+    // Define male and female voice options
     const maleOptions = ["Antonio", "Donato", "Fabio", "Humberto", "Julio", "Macerio", "Nicolau", "Valerio"];
     const femaleOptions = ["Brenda", "Elza", "Francisca", "Giovanna", "Leila", "Leticia", "Manuela", "Thalita", "ThalitaMultilingual", "Yara"];
 
-    // Function to update dropdown based on gender selected
-    function updateDropdown() {
-        const dropdown = document.getElementById("dropdown");
-        const selectedGender = document.querySelector('input[name="gender"]:checked').value;
-        let options = [];
-
-        if (selectedGender === "Male") {
-            options = maleOptions;
-        } else if (selectedGender === "Female") {
-            options = femaleOptions;
-        }
+    // Function to update voices in the dropdown based on the selected gender
+    function updateVoices() {
+        const genderSelect = document.querySelector('select[name="gender"]');
+        const selectedGender = genderSelect.value; // 1 for Male, 0 for Female
+        const dropdown = document.querySelector('select[name="dropdown"]');
 
         // Clear existing options
         dropdown.innerHTML = "";
 
-        // Add new options
-        options.forEach(function(option) {
-            const newOption = document.createElement("option");
-            newOption.value = option;
-            newOption.text = option;
-            dropdown.appendChild(newOption);
+        // Populate options based on gender
+        const voices = selectedGender == 1 ? maleOptions : femaleOptions;
+        voices.forEach(voice => {
+            const option = document.createElement("option");
+            option.value = voice;
+            option.textContent = voice;
+            dropdown.appendChild(option);
         });
     }
 
-    // Event listeners for radio buttons to update the dropdown
-    document.getElementById("male").addEventListener("change", updateDropdown);
-    document.getElementById("female").addEventListener("change", updateDropdown);
+    // Add event listener for gender dropdown change
+    document.querySelector('select[name="gender"]').addEventListener("change", updateVoices);
 
-    // Button click event for "GENERATE"
-    document.getElementById('generateButton').addEventListener('click', function() {
-        const selectedVoice = document.getElementById("dropdown").value;
-        const enteredText = document.getElementById("textbox").value;
-        const selectedGender = document.querySelector('input[name="gender"]:checked').value.toLowerCase();
+    // Event listener for "Gerar Áudio" button
+    document.querySelector('input[name="generateAudio"]').addEventListener("click", function(event) {
+        event.preventDefault(); // Prevent form submission
+
+        const selectedVoice = document.querySelector('select[name="dropdown"]').value;
+        const enteredText = document.querySelector('#textbox').value; // Fetch text from textarea
+        const selectedGender = document.querySelector('select[name="gender"]').value == 1 ? "male" : "female";
+
+        if (!enteredText.trim()) {
+            alert("Por favor, insira um texto para gerar o áudio.");
+            return;
+        }
 
         // Make AJAX request to generate audio
         fetch('/generate-audio', {
@@ -143,23 +128,22 @@
         });
     });
 
-    // Play button functionality
-    document.getElementById('playButton').addEventListener('click', function() {
-        const selectedOption = document.getElementById("dropdown").value;
-        const selectedGender = document.querySelector('input[name="gender"]:checked').value;
+    // Event listener for "Tocar amostra" button
+    document.querySelector('input[name="playSample"]').addEventListener("click", function(event) {
+        event.preventDefault(); // Prevent form submission
 
-        let audioUrl = "";
-        if (selectedGender === "Male") {
-            audioUrl = `/audio/male/${selectedOption}.wav`;
-        } else if (selectedGender === "Female") {
-            audioUrl = `/audio/female/${selectedOption}.wav`;
-        }
+        const selectedVoice = document.querySelector('select[name="dropdown"]').value;
+        const selectedGender = document.querySelector('select[name="gender"]').value == 1 ? "male" : "female";
 
+        let audioUrl = `/audio/${selectedGender}/${selectedVoice}.wav`;
         const audioPlayer = document.getElementById("audioPlayer");
         audioPlayer.src = audioUrl;
         audioPlayer.style.display = "block";  // Make the audio player visible
         audioPlayer.play();
     });
+
+    // Initialize the voices dropdown
+    updateVoices();
 </script>
 
 </body>
