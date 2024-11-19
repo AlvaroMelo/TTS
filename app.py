@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_from_directory, request, jsonify, send_file
+from flask import Flask, render_template, send_from_directory, request, jsonify, send_file, url_for
 from main import generate
 import os
 
@@ -11,7 +11,7 @@ DATA_DIR = './mnt/data'
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', home_active=True)
 
 # Route to serve male audio files
 @app.route('/audio/male/<filename>')
@@ -48,6 +48,10 @@ def download_audio(gender):
         return send_file(file_path, as_attachment=True)
     else:
         return jsonify({"status": "error", "message": "File not found!"}), 404
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    return render_template('login.html')
 
 
 if __name__ == '__main__':

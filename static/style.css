@@ -30,3 +30,23 @@ button {
 .hidden {
     display: none;
 }
+
+/* Center the form vertically */
+.container {
+    margin-top: 10%;
+}
+
+/* Style links */
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Add some spacing for the form elements */
+form .form-control {
+    margin-bottom: 1rem;
+}
